@@ -143,11 +143,7 @@ namespace Galaxy
 
         }
         
-        internal bool TryUseMiddleware(IGalaxyWare ware)
-        {
-            this.Wares.Add(ware);
-            return true;
-        }
+        
 
         /*
          * Public Methods
@@ -157,6 +153,11 @@ namespace Galaxy
         {
             Listener.Start();
             new Thread( this.HandleConnections ).Start();
+        }
+        public bool TryUseMiddleware(IGalaxyWare ware)
+        {
+            this.Wares.Add(ware);
+            return true;
         }
         
     }

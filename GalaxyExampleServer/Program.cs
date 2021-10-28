@@ -21,6 +21,20 @@ namespace GalaxyExampleServer
             // which listens on port 4000
             // and replys with a "hello world"
             // page
+            if (!Server.TryUseMiddleware(new StaticMount("/www/assets", "/assets")))
+            // Middleware is a concept where requests are put through multiple functions
+            // that can catch specific types of requests or edit the request to add
+            // specific parameters. This adds the StaticMount middleware, which catches
+            // all requests to "assets/* and grabs the file from www/assets/, so a request
+            // to localhost:port/assets/image.png returns the file www/assets/image.png
+            // this TryUseMiddleware function will return false if it cannot be added
+            // for any reason, thus throwing the ExecutionEngineException and preventing
+            // the application from running without the middleware attached. 
+            {
+                throw new ExecutionEngineException("Middleware failed to initialize");
+            }
+            
+
             Server.Start(); // This is the function to start the server. The
                             // ASP.NET Core equivalent to this function is
                             // "blocking", which means it prevents the next
@@ -36,6 +50,16 @@ namespace GalaxyExampleServer
                                                         // Start function is "blocking", however it runs here 
                                                         // because the GalaxyServer Start function is 
                                                         // "non-blocking"
+            HttpResponseMessage res = new HttpClient().GetAsync("http://localhost:4000/assets/image.png").Result;
+            // assert that it's equal to the actual file
+            if (res.Content.ReadAsByteArrayAsync().Result == File.ReadAllBytes("www/assets/image.png"))
+            {
+                System.Console.WriteLine("Assertion passed, content valid");
+            }
+            else
+            {
+                System.Console.WriteLine("Assertion failed, content not the same.");
+            }
         }
 
         private static void GetRoutes()
@@ -63,29 +87,7 @@ namespace GalaxyExampleServer
                     }
                 )
             );
-            Routes.Add(
-                new HttpRouteDetails(HttpMethod.Get, "/assets/image.png"),
-                new Action<HttpListenerContext>(
-                    ctx =>
-                    {
-                        try
-                        {
-                            byte[] index = File.ReadAllBytes("www/assets/image.png");
-                            ctx.Response.StatusCode = 200;
-                            ctx.Response.AddHeader("Content-Type", "image/png");
-                            ctx.Response.OutputStream.Write(index);
-                            ctx.Response.Close();
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                            ctx.Response.StatusCode = 500;
-                            ctx.Response.OutputStream.Write(Encoding.ASCII.GetBytes("<h1>500 INTERNAL SERVER ERROR</h1><p>FileReadError</p>"));
-                            ctx.Response.Close();
-                        }
-                    }
-                )
-            );
+            
         }
     }
 }

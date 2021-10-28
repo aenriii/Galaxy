@@ -17,9 +17,18 @@ namespace Galaxy
             this.Request = lctx.Request;
             this.Response = lctx.Response;
         }
-        public async Task StreamResponse(byte[] res)
+        public async Task StreamResponse(Stream res)
         {
-            throw new NotImplementedException("Not Implemented");
+            byte b = byte.MinValue;
+            for (var i = 1; i == 1; b = (byte)res.ReadByte())
+            {
+                if ((int)b == -1)
+                {
+                    Response.OutputStream.WriteByte(b);
+                }
+            }
+            Response.StatusCode = 200;
+            Response.Close();
             return;
         }
         public void WriteString(string res)

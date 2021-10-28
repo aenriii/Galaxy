@@ -21,7 +21,7 @@ namespace Galaxy
             this.routeMount = routeMount;
             this.folderPath = folderPath;
             this.recursive = recursive;
-            this.routeMountPathList =  = this.routeMount.Split("/").Where<string>(x => x != string.Empty);
+            this.routeMountPathList = this.routeMount.Split("/").Where<string>(x => x != string.Empty).ToList<string>();
         }
         public bool HandleRequest(HttpContext context)
         {
@@ -45,20 +45,21 @@ namespace Galaxy
                 string p = Path.GetRelativePath(Directory.GetCurrentDirectory(), Join("/", path));
                 if (new Uri(Directory.GetCurrentDirectory()).IsBaseOf(new Uri(p)))
                 {
+                    FileStream buffer = File.OpenRead(p);
+                    context.StreamResponse(buffer);
                     
                 }
 
             }
             catch (Exception e)
             {
-
+                context.WriteString("500 INTERNAL SERVER ERROR;failed-retrieve" + path.ToString() +";error:" + e.Message);
+                context.Response.StatusCode = 500;
+                context.Response.Close();
             }
-            finally
-            {
+            
 
-            }
-
-            return false;
+            return true;
         }
         internal string Join(string sep, List<string> l)
         {
