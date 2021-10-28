@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy", "Galaxy/Galaxy.csproj", "{A9A487E2-40C0-4263-B009-E2A3F60B1380}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyExampleServer", "GalaxyExampleServer\GalaxyExampleServer.csproj", "{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A9A487E2-40C0-4263-B009-E2A3F60B1380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9A487E2-40C0-4263-B009-E2A3F60B1380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9A487E2-40C0-4263-B009-E2A3F60B1380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9A487E2-40C0-4263-B009-E2A3F60B1380}.Release|Any CPU.Build.0 = Release|Any CPU
+		{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
