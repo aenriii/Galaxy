@@ -22,8 +22,8 @@ namespace Galaxy
         internal Dictionary<string, Action<HttpListenerContext>> PUTRoutes = new Dictionary<string, Action<HttpListenerContext>>();
         internal Dictionary<string, Action<HttpListenerContext>> DELETERoutes = new Dictionary<string, Action<HttpListenerContext>>();
         
-        internal List<Action<HttpContext>> Wares = new List<Action<HttpContext>>();
-        
+        internal List<IGalaxyWare> Wares = new List<IGalaxyWare>();
+
         
         
 
@@ -96,11 +96,9 @@ namespace Galaxy
                     {
                         if (ctx.Request.Url.AbsolutePath == r.Key)
                         {
-                            t = new Thread(
-                                () => { r.Value(ctx); });
-                            t.Start();
-                            processed = true;
-                            break;
+                            new Thread(
+                                () => { r.Value(ctx); }).Start();
+                            return;
                         }
 
                     }
@@ -145,6 +143,12 @@ namespace Galaxy
 
         }
         
+        internal bool TryUseMiddleware(IGalaxyWare ware)
+        {
+            this.Wares.Add(ware);
+            return true;
+        }
+
         /*
          * Public Methods
          */
