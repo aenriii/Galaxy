@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galaxy</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <style>
+
+ 
+ </style>
+</head>
+<body>
+    <div id="container">
+        <header>
+        <div id="logo">
+        <img src="https://via.placeholder.com/150x150.png" width="40px" height="40px" alt="Galaxy Logo">
+        </div>
+            
+            <ul>
+                <li><a disabled href="documentation.html">Docs</a></li>
+                <li><a disabled href="examples.html">Examples</a></li>
+                <li><a disabled href="https://github.com/jdadonut/Galaxy">Source Code</a></li>
+                <li><a disabled href="https://discord.com">Discord</a></li>
+            </ul>
+        </header>
+        <div class="section">
+            <h1>What is Galaxy?</h1>
+            <p>Galaxy is a lightweight c# library for servers, built on and supporting .NET Core 5.0. It is unreleased and is currently a simple small project I am building for personal use</p>
+        </div>
+        <div class="section">
+            <h1>Why is Galaxy?</h1>
+            <p>Honestly? I had an issue with ASP.NET Core and took the nuclear route. None of this is <i>really</i> neccessary but i find it fun.</p>
+        </div>
+        <div class="section">
+            <h1>Why not use ASP.NET?</h1>
+            <p>It is hard if not to get ASP.NET to not block without doing some messy thread work. Galaxy solves that by not blocking on the Serer.Start() call, allowing your processes or tests to run freely in the foreground thread while your server is happy in a background thread.</p>
+        </div>
+    </div>
+</body>
+</html>

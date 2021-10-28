@@ -1,0 +1,40 @@
+*{
+    font-family: "Trebuchet MS", Arial;
+  }
+  header {
+display: grid;
+height: auto;
+grid-template-columns: 0.3fr 1fr;
+border-bottom: 3px black solid;
+}
+header ul{
+display: grid;
+grid-template-columns: 1fr 1fr 1fr 1fr;
+list-style-type: none;
+text-align: center;
+grid-gap: 5px;
+
+}
+#logo{
+width: 100%;
+margin-left: 15px;
+margin-top: 5px;
+}
+#logo img{
+border-radius: 10px;
+}
+a{
+text-decoration: none;
+color: black;
+}
+
+.section{
+ max-width: 80%;
+ transform: translateX(10%);
+ border: 1px black solid;
+ margin: unset;
+ padding: unset;
+ margin-top: 10px;
+ padding: 5px;
+ 
+}
