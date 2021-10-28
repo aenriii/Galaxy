@@ -8,7 +8,7 @@ using Galaxy.Http;
 using System.Linq;
 using System.Text;
 using System.Threading;
-
+using Galaxy.Internal;
 
 namespace Galaxy
 {
@@ -21,6 +21,8 @@ namespace Galaxy
         internal Dictionary<string, Action<HttpListenerContext>> POSTRoutes = new Dictionary<string, Action<HttpListenerContext>>();
         internal Dictionary<string, Action<HttpListenerContext>> PUTRoutes = new Dictionary<string, Action<HttpListenerContext>>();
         internal Dictionary<string, Action<HttpListenerContext>> DELETERoutes = new Dictionary<string, Action<HttpListenerContext>>();
+        
+        internal List<Action<HttpContext>> Wares = new List<Action<HttpContext>>();
         
         
         
@@ -75,7 +77,20 @@ namespace Galaxy
                 Action<HttpListenerContext> act;
                 Thread t;
                 bool processed = false;
-                if (m == HttpMethod.Get)
+
+                new Thread(() => HandleRequest(ctx, m)).Start();
+            }
+        }
+        internal void HandleRequest(HttpListenerContext ctx, HttpMethod m)
+        {
+            bool processed = false;
+            foreach(IGalaxyWare Middleware in this.Wares)
+            {
+                if (Middleware.HandleRequest(new HttpContext(ctx)))
+                    return; // if request is handled, do not pass it on
+
+            }
+            if (m == HttpMethod.Get)
                 {
                     foreach (KeyValuePair<string, Action<HttpListenerContext>> r in GETRoutes)
                     {
@@ -128,7 +143,6 @@ namespace Galaxy
                                                                             "</html>"));
                 }
 
-            }
         }
         
         /*
