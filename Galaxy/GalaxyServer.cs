@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using Galaxy.Http;
@@ -9,156 +10,261 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Galaxy.Internal;
+using Galaxy.Util;
 
 namespace Galaxy
 {
     #nullable enable
-    public class GalaxyServer
+    public class GalaxyServer : IGalaxyServer
     {
-        internal HttpListener Listener;
-        internal GalaxyServerConfiguration Configuration;
-        internal Dictionary<string, Action<HttpListenerContext>> GETRoutes = new Dictionary<string, Action<HttpListenerContext>>();
-        internal Dictionary<string, Action<HttpListenerContext>> POSTRoutes = new Dictionary<string, Action<HttpListenerContext>>();
-        internal Dictionary<string, Action<HttpListenerContext>> PUTRoutes = new Dictionary<string, Action<HttpListenerContext>>();
-        internal Dictionary<string, Action<HttpListenerContext>> DELETERoutes = new Dictionary<string, Action<HttpListenerContext>>();
-        
-        internal List<IGalaxyWare> Wares = new List<IGalaxyWare>();
-
-        
-        
-
-        public GalaxyServer(GalaxyServerConfiguration? config)
-        {
-            Configuration = config ?? default(GalaxyServerConfiguration);
-            foreach (KeyValuePair<HttpRouteDetails, Action<HttpListenerContext>> route in Configuration.Routes)
-            {
-                
-                    if     (route.Key.Method == HttpMethod.Get)
-                        GETRoutes.Add   (route.Key.Route, route.Value);
-                    else if(route.Key.Method == HttpMethod.Post)
-                        POSTRoutes.Add  (route.Key.Route, route.Value);
-                    else if(route.Key.Method == HttpMethod.Get)
-                        PUTRoutes.Add   (route.Key.Route, route.Value);
-                    else if(route.Key.Method == HttpMethod.Get)
-                        DELETERoutes.Add(route.Key.Route, route.Value);
-                    else
-                        Console.Write(new ArgumentException("Method not permitted currently: " + route.Key.Method.ToString()));
-            }
-
-            Listener = new HttpListener();
-            if (Configuration.Ports != null)
-                foreach (int port in Configuration.Ports)
-                    AddPort(port);
-            else
-                AddPort(Configuration.Port.Value); // ! asserting that C.Port is non-null, as it most definitely is if C.Ports isnt
-            
-
-        }
-        
         /*
-         * Internal Methods
+         * Complete remake.
          */
-        internal void AddPort(int port)
+        private ListDictionary<IGalaxyEvent, GalaxyRoute> EventPools;
+    
+        private Dictionary<HttpMethod, IGalaxyEvent> Events;
+        private HttpListener Listener;
+        private Thread ListenerThread;
+        private bool IsRunning;
+        private bool IsStopped;
+        
+        public GalaxyServer(int port)
         {
-            if (this.Listener == null)
-            {
-                throw new ArgumentNullException("Listener is not initialized.");
-            }
-            Listener.Prefixes.Add($"http{(Configuration.UseHttps ? "s" : "")}://*:{port}/");
+            EventPools = new ListDictionary<IGalaxyEvent, GalaxyRoute>();
+            Events = new Dictionary<HttpMethod, IGalaxyEvent>();
+            IsRunning = false;
+            IsStopped = false;
+            Listener = new();
+            AddPort(port);
         }
 
-        internal void HandleConnections()
-        {
-            bool run = true;
-            while (run)
-            {
-                HttpListenerContext ctx = Listener.GetContextAsync().Result;
-                HttpMethod m = new HttpMethod(ctx.Request.HttpMethod);
-                Action<HttpListenerContext> act;
-                Thread t;
-                bool processed = false;
+        #region Public Methods
 
-                new Thread(() => HandleRequest(ctx, m)).Start();
-            }
+        public void UseMiddleware(IGalaxyWare ware)
+        {
+            throw new NotImplementedException();
         }
-        internal void HandleRequest(HttpListenerContext ctx, HttpMethod m)
-        {
-            bool processed = false;
-            foreach(IGalaxyWare Middleware in this.Wares)
-            {
-                if (Middleware.HandleRequest(new HttpContext(ctx)))
-                    return; // if request is handled, do not pass it on
 
-            }
-            if (m == HttpMethod.Get)
+        public void RemoveMiddleware(IGalaxyWare ware)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Get(string route, Action<HttpContext> action)
+        {
+            
+            if (EventPools.TryGetValue(IGalaxyEvent.Get, out var list))
+            {
+                if (list.Find(x =>  x.Matches(route)) != null)
                 {
-                    foreach (KeyValuePair<string, Action<HttpListenerContext>> r in GETRoutes)
-                    {
-                        if (ctx.Request.Url.AbsolutePath == r.Key)
-                        {
-                            new Thread(
-                                () => { r.Value(ctx); }).Start();
-                            return;
-                        }
+                    throw new ArgumentException("Route already exists (" + route + ")");
+                }
+            }
+            if (!this.EventPools.TryAdd(
+                IGalaxyEvent.Get,
 
+                new GalaxyRoute(
+                    new HttpRouteDetails(HttpMethod.Get, route),
+                    action
+                )
+            ))
+            {
+                throw new AggregateException("Adding " + route + " to the EventPool for 'GET' failed.");
+            }
+        }
+
+        public void Post(string route, Action<HttpContext> action)
+        {
+            if (EventPools.TryGetValue(IGalaxyEvent.Post, out var list))
+            {
+                if (list.Find(x =>  x.Matches(route)) != null)
+                {
+                    throw new ArgumentException("Route already exists (" + route + ")");
+                }
+            }
+            if (!this.EventPools.TryAdd(
+                IGalaxyEvent.Post,
+
+                new GalaxyRoute(
+                    new HttpRouteDetails(HttpMethod.Get, route),
+                    action
+                )
+            ))
+            {
+                throw new AggregateException("Adding " + route + " to the EventPool for 'POST' failed.");
+            }
+        }
+
+        // public void Head(string route, Action<HttpContext> action)
+        // {
+        //     // TODO: Make fake Response and Request objects to treat as a GET request as per HTTP spec.
+        //     throw new NotImplementedException();
+        // }
+        //
+        // public void Options(string route, Action<HttpContext> action)
+        // {
+        //     // TODO: Dynamically generate a response object to return.
+        //     throw new NotImplementedException();
+        // }
+
+        public void Delete(string route, Action<HttpContext> action)
+        {
+            if (EventPools.TryGetValue(IGalaxyEvent.Delete, out var list))
+            {
+                if (list.Find(x =>  x.Matches(route)) != null)
+                {
+                    throw new ArgumentException("Route already exists (" + route + ")");
+                }
+            }
+            if (!this.EventPools.TryAdd(
+                IGalaxyEvent.Delete,
+
+                new GalaxyRoute(
+                    new HttpRouteDetails(HttpMethod.Get, route),
+                    action
+                )
+            ))
+            {
+                throw new AggregateException("Adding " + route + " to the EventPool for 'DELETE' failed.");
+            }
+        }
+
+        public void Put(string route, Action<HttpContext> action)
+        {
+            if (EventPools.TryGetValue(IGalaxyEvent.Put, out var list))
+            {
+                if (list.Find(x =>  x.Matches(route)) != null)
+                {
+                    throw new ArgumentException("Route already exists (" + route + ")");
+                }
+            }
+            if (!this.EventPools.TryAdd(
+                IGalaxyEvent.Put,
+
+                new GalaxyRoute(
+                    new HttpRouteDetails(HttpMethod.Get, route),
+                    action
+                )
+            ))
+            {
+                throw new AggregateException("Adding " + route + " to the EventPool for 'PUT' failed.");
+            }
+        }
+
+        public void ServeStaticFile(string path, string route)
+        {
+            if (!Assert.FileExists(path))
+            {
+                throw new ArgumentException("File does not exist", nameof(path));
+            }
+            if (EventPools.TryGetValue(IGalaxyEvent.Get, out var list))
+            {
+                if (list.Find(x =>  x.Matches(route)) != null)
+                {
+                    throw new ArgumentException("Route already exists (" + route + ")");
+                }
+            }
+            if (!this.EventPools.TryAdd(
+                IGalaxyEvent.Get,
+
+                new GalaxyRoute(
+                    new HttpRouteDetails(HttpMethod.Get, route),
+                    (context =>
+                    {
+                        Console.WriteLine("Serving static file: " + path);
+                        context.TryWriteFile(path);
+                    })
+                )
+            ))
+            {
+                throw new AggregateException("Adding " + route + " to the EventPool for 'GET' failed.");
+            }
+        }
+
+        public void ServeStaticFolder(string path, string route)
+        {
+            if(!Assert.FolderExists(path))
+                throw new ArgumentException("Folder does not exist", nameof(path));
+            // iterate over files in folder and add them to the event pool
+            foreach (var file in Directory.GetFiles(path))
+            {
+                Console.WriteLine("Adding " + file + " to the EventPool for 'GET'");
+                if (Directory.Exists(route + "/" + Path.GetFileName(file)))
+                {
+                    ServeStaticFolder(file,route + "/" + Path.GetFileName(file)        );
+                }
+                ServeStaticFile(file, route + "/" + Path.GetFileName(file));
+            }
+        }
+
+        public void StartAsDevelopment(int port)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Start()
+        {
+            Listen();
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private void BeginEventDispatch()
+        {
+            while (IsRunning)
+            {
+                if(!Listener.IsListening)
+                    continue;
+                var context = Listener.GetContext();
+                if (context == null)
+                    continue;
+                HttpContext httpContext = new HttpContext(context);
+                Console.WriteLine("Received request: " + httpContext.Request.Url);
+                // get the event pool for the request
+                if (EventPools.TryGetValue(new IGalaxyEvent(httpContext.Method.Method), out var list))
+                {
+                    
+                    // find the route
+                    Console.WriteLine(httpContext.Request.Url.AbsolutePath);
+                    var route = list.Find(x => x.Matches(httpContext.Request.Url.AbsolutePath));
+                    if (route != null)
+                    {
+                        // execute the route
+                        route.Handle(httpContext);
                     }
-
-                    if (!processed)
+                    else
                     {
-                        ctx.Response.StatusCode = 404;
-                        ctx.Response.OutputStream.Write(Encoding.ASCII.GetBytes("" +
-                            "<html>" +
-                            "<head>" +
-                            "<title> 404 </title>" +
-                            "</head>" +
-                            "<body>" +
-                            "<h1>" +
-                            "Method unacceptable" +
-                            "</h1>" +
-                            "<p>" +
-                            ctx.Request.Url.AbsolutePath + " Not Found" +
-                            "</p>" +
-                            "</body>" +
-                            "</html>"));
+                        // no route found
+                        httpContext.TryWriteError(404);
                     }
                 }
                 else
                 {
-                    ctx.Response.StatusCode = 400;
-                    ctx.Response.OutputStream.Write(Encoding.ASCII.GetBytes("" +
-                                                                            "<html>" +
-                                                                            "<head>" +
-                                                                            "<title> 400 </title>" +
-                                                                            "</head>" +
-                                                                            "<body>" +
-                                                                            "<h1>" +
-                                                                            "Method unacceptable" +
-                                                                            "</h1>" +
-                                                                            "<p>" +
-                                                                            ctx.Request.HttpMethod + " Not Implemented Yet" +
-                                                                            "</p>" +
-                                                                            "</body>" +
-                                                                            "</html>"));
+                    // no event pool found
+                    httpContext.TryWriteError(404);
                 }
-
+                
+            }
         }
-        
-        
 
-        /*
-         * Public Methods
-         */
-
-        public void Start()
+        void Listen()
         {
             Listener.Start();
-            new Thread( this.HandleConnections ).Start();
+            ListenerThread = new Thread(BeginEventDispatch);
+            ListenerThread.Start();
         }
-        public bool TryUseMiddleware(IGalaxyWare ware)
+
+        void AddPort(int port)
         {
-            this.Wares.Add(ware);
-            return true;
+            // add port to the list of prefixes
+            Listener.Prefixes.Add(
+                "http://*:" + port + "/"
+                );
         }
-        
+
+        #endregion
     }
+    
 }

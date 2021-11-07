@@ -12,28 +12,25 @@ namespace GalaxyExampleServer
     class Program
     {
         private static GalaxyServer Server;
-        private static Dictionary<HttpRouteDetails, Action<HttpListenerContext>> Routes = new Dictionary<HttpRouteDetails, Action<HttpListenerContext>>();
         public static void Main(string[] args)
         {
-            GetRoutes();
-            Server = new GalaxyServer(new GalaxyServerConfiguration(4000, Routes)); 
+            Server = new GalaxyServer(4000); 
             // use default configuration
             // which listens on port 4000
             // and replys with a "hello world"
             // page
-            if (!Server.TryUseMiddleware(new StaticMount("/www/assets", "/assets")))
-            // Middleware is a concept where requests are put through multiple functions
-            // that can catch specific types of requests or edit the request to add
-            // specific parameters. This adds the StaticMount middleware, which catches
-            // all requests to "assets/* and grabs the file from www/assets/, so a request
-            // to localhost:port/assets/image.png returns the file www/assets/image.png
-            // this TryUseMiddleware function will return false if it cannot be added
-            // for any reason, thus throwing the ExecutionEngineException and preventing
-            // the application from running without the middleware attached. 
+            Server.ServeStaticFolder(Path.Join(Path.GetPathRoot("/"), "srv", "www", "assets"), "/assets"); 
+            Server.Get("/", ctx =>
             {
-                throw new ExecutionEngineException("Middleware failed to initialize");
-            }
-            
+                Console.WriteLine("GET /");
+                if (ctx.TryWriteFile(Path.Join(Path.GetPathRoot("/"), "srv", "www", "index.html")))
+                {
+                    ctx.TryWriteError(500);
+                    ctx.Close();
+                }
+                
+            });
+
 
             Server.Start(); // This is the function to start the server. The
                             // ASP.NET Core equivalent to this function is
@@ -62,32 +59,6 @@ namespace GalaxyExampleServer
             }
         }
 
-        private static void GetRoutes()
-        {
-            Routes.Add(
-                new HttpRouteDetails(HttpMethod.Get, "/"),
-                new Action<HttpListenerContext>(
-                    ctx =>
-                    {
-                        try
-                        {
-                            byte[] index = File.ReadAllBytes("www/index.html");
-                            ctx.Response.StatusCode = 200;
-
-                            ctx.Response.OutputStream.Write(index);
-                            ctx.Response.Close();
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e);
-                            ctx.Response.StatusCode = 500;
-                            ctx.Response.OutputStream.Write(Encoding.ASCII.GetBytes("<h1>500 INTERNAL SERVER ERROR</h1><p>FileReadError</p>"));
-                            ctx.Response.Close();
-                        }
-                    }
-                )
-            );
-            
-        }
+        
     }
 }
