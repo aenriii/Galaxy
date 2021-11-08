@@ -1,5 +1,5 @@
 # Galaxy
-Galaxy is a C# Http server library ((Tcp coming soon!)[https://github.com/jdadonut/galaxy/tree/Tcp]) that works as an alternative to ASP.NET. It is built with .NET Core 5 (should work on .NC6) and is currently in early beta.
+Galaxy is a C# Http server library ([Tcp coming soon!](https://github.com/jdadonut/galaxy/tree/Tcp)) that works as an alternative to ASP.NET. It is built with .NET Core 5 (should work on .NC6) and is currently in early beta.
 
 ## To-Do
 - Tcp Support
