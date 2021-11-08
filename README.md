@@ -17,4 +17,6 @@ By contributing, you agree that the code you contribute will become applicable t
 
 ## Installing
 Galaxy and Galaxy.Tcp are currently not on the NuGet repositories. You will have to install manually by cloning the repo and referencing the .csproj, as shown in `GalaxyExampleServer/GalaxyExampleServer.csproj`
+
+
 The library will be added to NuGet repos once it is production-ready, which includes `Proper Documentation`, `HTTPS Support`, `WebSocket Support`, and the minor changes to existing APIs
