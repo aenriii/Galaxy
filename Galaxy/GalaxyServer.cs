@@ -204,6 +204,7 @@ namespace Galaxy
 
         public void Start()
         {
+            IsRunning = true;
             Listen();
         }
 
@@ -218,37 +219,48 @@ namespace Galaxy
                 if(!Listener.IsListening)
                     continue;
                 var context = Listener.GetContext();
-                if (context == null)
-                    continue;
-                HttpContext httpContext = new HttpContext(context);
-                Console.WriteLine("Received request: " + httpContext.Request.Url);
-                // get the event pool for the request
-                if (EventPools.TryGetValue(new IGalaxyEvent(httpContext.Method.Method), out var list))
-                {
-                    
-                    // find the route
-                    Console.WriteLine(httpContext.Request.Url.AbsolutePath);
-                    var route = list.Find(x => x.Matches(httpContext.Request.Url.AbsolutePath));
-                    if (route != null)
-                    {
-                        // execute the route
-                        route.Handle(httpContext);
-                    }
-                    else
-                    {
-                        // no route found
-                        httpContext.TryWriteError(404);
-                    }
-                }
-                else
-                {
-                    // no event pool found
-                    httpContext.TryWriteError(404);
-                }
                 
+                HttpContext httpContext = new HttpContext(context);
+                var dispatchThread = new Thread(
+                    () => DispatchResponse(httpContext));
+                dispatchThread.Start();
+
+
             }
         }
 
+        private void DispatchResponse(HttpContext httpContext)
+        {
+            Console.WriteLine("Received request: " + httpContext.Request.Url);
+            // get the event pool for the request
+            if (EventPools.TryGetValue(new IGalaxyEvent(httpContext.Method.Method), out var list))
+            {
+                
+                // find the route
+                var route = list.Find(x => x.Matches(httpContext.Request.Url.AbsolutePath));
+                if (route != null)
+                {
+                    // execute the route
+                    route.Handle(httpContext);
+                }
+                else
+                {
+                    // no route found
+                    httpContext.TryWriteError(404);
+                    
+                    // if the route is favicon.ico, write the default favicon
+                    if (httpContext.Request.Url.AbsolutePath == "/favicon.ico")
+                    {
+                        httpContext.TryWriteFile(Assert.GetFaviconPath());
+                    }
+                }
+            }
+            else
+            {
+                // no event pool found
+                httpContext.TryWriteError(404);
+            }
+        }
         void Listen()
         {
             Listener.Start();

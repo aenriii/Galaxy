@@ -22,8 +22,7 @@ namespace GalaxyExampleServer
             Server.ServeStaticFolder(Path.Join(Path.GetPathRoot("/"), "srv", "www", "assets"), "/assets"); 
             Server.Get("/", ctx =>
             {
-                Console.WriteLine("GET /");
-                if (ctx.TryWriteFile(Path.Join(Path.GetPathRoot("/"), "srv", "www", "index.html")))
+                if (!ctx.TryWriteFile(Path.Join(Path.GetPathRoot("/"), "srv", "www", "index.html")))
                 {
                     ctx.TryWriteError(500);
                     ctx.Close();
