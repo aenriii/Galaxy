@@ -1,0 +1,4 @@
+tasks:
+  - init: sudo apt install dotnet-sdk-5.0 git && export PS1="($CWD)> "
+            # TODO: install dependencies, build project
+    command: echo all good # TODO: start app
