@@ -1,5 +1,5 @@
 
-namespace Galaxy.Tcp
+namespace Galaxy.Tcp.Enums
 {
     enum TcpIpOption
     {
