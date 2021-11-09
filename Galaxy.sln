@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy", "Galaxy/Galaxy.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyExampleServer", "GalaxyExampleServer\GalaxyExampleServer.csproj", "{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.Tcp", "Galaxy\Tcp\Galaxy.Tcp.csproj", "{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.Tcp", "Galaxy.Tcp\Galaxy.Tcp.csproj", "{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyExampleTcpServer", "GalaxyExampleTcpServer \GalaxyExampleTcpServer.csproj", "{0E645A26-612A-49AD-806F-8DCFE0D35D93}"
 EndProject
