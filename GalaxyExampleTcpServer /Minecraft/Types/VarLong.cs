@@ -3,43 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 namespace Minecraft.Types
 {
-    public abstract class VarLong
+    public class VarLong
     {
-        internal byte[10] value;
-        
-        public static implicit operator VarLong(byte[] byteArr)
+        // read and write VarLongs
+        public static long ReadVarLong(byte[] bytes, ref int offset)
         {
-            long value = 0;
-            int bitOffset = 0;
-            IEnumerator<byte> byteEnum = byteArr.GetEnumerator();
-            byte currentByte;
-            do {
-                if (bitOffset == 70) throw new InvalidCastException("Cannot cast from byte[>10] to VarLong");
-
-                currentByte = byteEnum.Current;
-                value |= (currentByte & 0b01111111) << bitOffset;
-
-                bitOffset += 7;
-                byteEnum.MoveNext();
-            } while ((currentByte & 0b10000000) != 0);
-
-            return value;
-        }
-        public static implicit operator byte[](VarLong vlong)
-        {
-            byte[] byteArr = new();
-            while (true) {
-            // Only the first 7 bits have data
-                if ((value & 0b1111111111111111111111111111111111111111111111111111111110000000) == 0) {
-                    byteArr.SetValue(value, byteArr.Count());
-                    return byteArr;
-                }
-
-                byteArr.SetValue(value & 0b01111111 | 0b10000000, byteArr.Count());
-                // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
-                value >> 7;
+            long result = 0;
+            int shift = 0;
+            while (true)
+            {
+                byte b = bytes[offset++];
+                result |= (long)(b & 0x7F) << shift;
+                if ((b & 0x80) != 0x80)
+                    break;
+                shift += 7;
             }
-            return byteArr;
+            return result;
+        }
+        public static void WriteVarLong(long value, byte[] bytes, ref int offset)
+        {
+            while (true)
+            {
+                byte b = (byte)(value & 0x7F);
+                value >>= 7;
+                if (value != 0)
+                    b |= 0x80;
+                bytes[offset++] = b;
+                if (value == 0)
+                    break;
+            }
         }
     }
 }

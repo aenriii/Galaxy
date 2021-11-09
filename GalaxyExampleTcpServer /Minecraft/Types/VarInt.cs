@@ -3,41 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 namespace Minecraft.Types
 {
-    public abstract class VarInt
+    public class VarInt
     {
-        internal byte[5] value;
-    
-    public static implicit operator VarInt(byte[] byteArr)
-    {
-        int value = 0;
-        int bitOffset = 0;
-        byte currentByte;
-        IEnumerator<byte> byteEnum = byteArr.GetEnumerator();
-        do {
-            if (bitOffset == 35) throw new InvalidCastException("Cannot cast byte array larget then 5 to VarInt");
-
-            currentByte = byteEnum.Current;
-            value |= (currentByte & 0b01111111) << bitOffset;
-
-            bitOffset += 7;
-            byteEnum.MoveNext();
-        } while ((currentByte & 0b10000000) != 0);
-        return new VarInt{value};
-    }
-    public static implicit operator byte[](VarInt vint)
-    {
-        var value = vint.value;
-        byte[] bfr = new();
-        while (true) {
-        // Only the first 7 bits have data
-        if ((value & 0b11111111111111111111111110000000) == 0) {
-          bfr.SetValue(value, bfr.Count());
-          return;
+        public static int ReadVarInt(byte[] bytes, ref int offset)
+        {
+            int result = 0;
+            int i = 0;
+            while (true)
+            {
+                int num = bytes[offset++];
+                result |= (num & 127) << i;
+                if ((num & 128) == 0)
+                {
+                    return result;
+                }
+                i += 7;
+            }
         }
 
-        bfr.SetValue(value & 0b01111111 | 0b10000000, bfr.Count());
-        value >> 7;
-    }
-    }
+        public static void WriteVarInt(int value, out byte[] bytes)
+        {
+            bytes = new byte[] {};
+            var offset = 0;
+            while ((value & -128) != 0)
+            {
+                bytes[offset++] = (byte)(value & 127 | 128);
+                value = (int)((uint)value >> 7);
+            }
+            bytes[offset++] = (byte)value;
+        }
     }
 }

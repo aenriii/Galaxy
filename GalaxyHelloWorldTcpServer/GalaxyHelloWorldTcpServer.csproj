@@ -3,14 +3,11 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
+
     <ItemGroup>
       <ProjectReference Include="..\Galaxy\Tcp\Galaxy.Tcp.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-      <PackageReference Include="TinyMapper" Version="3.0.3" />
-      <PackageReference Include="UUIDNext" Version="1.0.1" />
     </ItemGroup>
 
 </Project>
