@@ -6,4 +6,9 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Galaxy.Tcp\Galaxy.Tcp.csproj" />
+      <ProjectReference Include="..\Galaxy\Tcp\Galaxy.Tcp.csproj" />
+    </ItemGroup>
+
 </Project>

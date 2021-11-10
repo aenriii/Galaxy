@@ -4,6 +4,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy", "Galaxy/Galaxy.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyExampleServer", "GalaxyExampleServer\GalaxyExampleServer.csproj", "{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Galaxy.Tcp", "Galaxy.Tcp\Galaxy.Tcp.csproj", "{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyExampleTcpServer", "GalaxyExampleTcpServer \GalaxyExampleTcpServer.csproj", "{0E645A26-612A-49AD-806F-8DCFE0D35D93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GalaxyHelloWorldTcpServer", "GalaxyHelloWorldTcpServer\GalaxyHelloWorldTcpServer.csproj", "{71A14BA6-4829-4BD4-9EEA-0D05AF18558B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Etsi.Minecraft", "Etsi.Minecraft\Etsi.Minecraft.csproj", "{7326F0DF-ABF1-4A9D-A7DF-D03C56240A5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +26,17 @@ Global
 		{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{928B8C8A-06F2-4F60-85B9-DF15CB3565D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E645A26-612A-49AD-806F-8DCFE0D35D93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E645A26-612A-49AD-806F-8DCFE0D35D93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E645A26-612A-49AD-806F-8DCFE0D35D93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E645A26-612A-49AD-806F-8DCFE0D35D93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71A14BA6-4829-4BD4-9EEA-0D05AF18558B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71A14BA6-4829-4BD4-9EEA-0D05AF18558B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71A14BA6-4829-4BD4-9EEA-0D05AF18558B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71A14BA6-4829-4BD4-9EEA-0D05AF18558B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7326F0DF-ABF1-4A9D-A7DF-D03C56240A5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7326F0DF-ABF1-4A9D-A7DF-D03C56240A5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7326F0DF-ABF1-4A9D-A7DF-D03C56240A5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7326F0DF-ABF1-4A9D-A7DF-D03C56240A5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
