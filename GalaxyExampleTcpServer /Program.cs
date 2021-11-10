@@ -1,10 +1,11 @@
-﻿using System;
+﻿#define DEBUG 
+using System;
 using System.Net;
 using Galaxy.Tcp;
 using Galaxy.Tcp.Enums;
 using Microsoft.Extensions.Logging;
 
-namespace GalaxyExampleServer
+namespace GalaxyExampleTcpServer
 {
     class Program
     {
@@ -12,7 +13,7 @@ namespace GalaxyExampleServer
         {
             Port = 25565,
             Ip = IPAddress.Any,
-            CustomContext = typeof(Minecraft.Core.TcpHandler),
+            CustomContext = typeof(TcpHandler),
             EndianOrientation = EndianSetting.LittleEndian,
             MaxBufferSize = 4096,
             MaxMessageSize = 4096,
@@ -21,6 +22,7 @@ namespace GalaxyExampleServer
         });
         public static void Main(string[] args)
         {
+            
             tcpServer.Start();
             Console.ReadLine();
 

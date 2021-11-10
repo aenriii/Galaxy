@@ -5,6 +5,8 @@
         <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
+      <ProjectReference Include="..\Etsi.Minecraft\Etsi.Minecraft.csproj" />
+      <ProjectReference Include="..\Galaxy.Tcp\Galaxy.Tcp.csproj" />
       <ProjectReference Include="..\Galaxy\Tcp\Galaxy.Tcp.csproj" />
     </ItemGroup>
     <ItemGroup>
