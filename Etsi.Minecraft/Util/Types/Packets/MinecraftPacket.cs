@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Threading;
+using Etsi.Minecraft.Server;
+using Galaxy.Tcp;
 
 namespace Etsi.Minecraft.Util.Types.Packets
 {
@@ -18,28 +20,18 @@ namespace Etsi.Minecraft.Util.Types.Packets
          * Byte[] Data (this will be what's in the packetData stream)
          */
         public MinecraftPacket() {}
-        public MinecraftPacket(Stream OpenStream)
+        public MinecraftPacket(GalaxyTcpClient OpenStream)
         {
             // Await stream ready
-            OpenStream.ReadTimeout = 1000;
-            byte[] buffer = new byte[] { };
-            OpenStream.ReadAsync(buffer, 0, 5).Wait();
-            VarInt Length = new VarInt();
-            Length.Read(buffer, ref _offs);
+            VarInt Length = TcpUtility.ReadVarInt(OpenStream);
             // Now we have the length, we can read the rest of the packet
-            buffer = new byte[Length];
-            OpenStream.ReadAsync(buffer, 0, Length).Wait();
+            byte[] buffer = TcpUtility.ReadBytes(OpenStream, Length);
             this._packetData =  new MemoryStream(buffer); 
             // _packetData includes the type as a VarInt and the data as binary.
             // We can now read the type.
-            buffer = new byte[] { };
-            this._packetData.Read(buffer, 0, 5);
-            VarInt Id = new VarInt();
-            Id.Read(buffer, ref _offs);
+            this.Id = TcpUtility.ReadVarInt(_packetData);
             // this.Type = (MinecraftPacketType)Id;
             // Now only data is in the stream, we can delegate this off to inheriting classes.
-            
-            
         }
 
         public MinecraftPacket(PacketMetadata metadata)

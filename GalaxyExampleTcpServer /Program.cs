@@ -1,4 +1,4 @@
-﻿#define DEBUG 
+﻿#define DEBUG
 using System;
 using System.Net;
 using Galaxy.Tcp;

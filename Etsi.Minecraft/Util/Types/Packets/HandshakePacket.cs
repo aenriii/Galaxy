@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Etsi.Minecraft.Server;
+using Galaxy.Tcp;
 
 
 namespace Etsi.Minecraft.Util.Types.Packets
@@ -11,7 +12,7 @@ namespace Etsi.Minecraft.Util.Types.Packets
         public string ServerAddress;
         public ushort ServerPort;
         public VarInt NextState;
-        public HandshakePacket(Stream stream)
+        public HandshakePacket(GalaxyTcpClient stream)
             : base(stream)
         {
             // Note: The first packet sent by the client is a HandshakePacket. Always. I hope.

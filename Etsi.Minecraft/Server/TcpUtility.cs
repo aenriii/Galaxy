@@ -3,12 +3,13 @@ using System.IO;
 using System.Text;
 using Etsi.Minecraft.Util.Types;
 using Etsi.Minecraft.Util.Types.Packets;
+using Galaxy.Tcp;
 
 namespace Etsi.Minecraft.Server
 {
     public class TcpUtility
     {
-        public static void WriteString(Stream minecraftTcpStream, string str)
+        public static void WriteString(GalaxyTcpClient client, string str)
         {
             // Strings are written as a length-prefixed string, followed by the string itself.
             // The length is a signed short, in network byte order.
@@ -16,104 +17,122 @@ namespace Etsi.Minecraft.Server
             
             byte[] strBytes = Encoding.UTF8.GetBytes(str);
             byte[] strLengthBytes = BitConverter.GetBytes((short)strBytes.Length);
-            minecraftTcpStream.Write(strLengthBytes, 0, strLengthBytes.Length);
-            minecraftTcpStream.Write(strBytes, 0, strBytes.Length);
+            client.TryWriteToStream(strLengthBytes, 0, strLengthBytes.Length);
+            client.TryWriteToStream(strBytes, 0, strBytes.Length);
         }
-        public static string ReadString(Stream minecraftTcpStream)
+        public static string ReadString(GalaxyTcpClient client)
         {
             // Strings are read as a length-prefixed string, followed by the string itself.
             // The length is a signed short, in network byte order.
             // The string is UTF-8 encoded.
             
             byte[] strLengthBytes = new byte[2];
-            minecraftTcpStream.ReadAsync(strLengthBytes, 0, strLengthBytes.Length).Wait();
+            
             short strLength = BitConverter.ToInt16(strLengthBytes, 0);
             byte[] strBytes = new byte[strLength];
-            minecraftTcpStream.ReadAsync(strBytes, 0, strBytes.Length).Wait();
+            client.TryReadFromStream(strBytes, 0, strBytes.Length);
             return Encoding.UTF8.GetString(strBytes);
         }
-        public static int ReadInt8(Stream minecraftTcpStream)
+        public static int ReadInt8(GalaxyTcpClient client)
         {
             // Integers are read as a signed byte.
             byte[] intBytes = new byte[1];
-            minecraftTcpStream.ReadAsync(intBytes, 0, intBytes.Length).Wait();
+            client.TryReadFromStream(intBytes, 0, intBytes.Length);
             return intBytes[0];
         }
-        public static void WriteInt8(Stream minecraftTcpStream, int int8)
+        public static void WriteInt8(GalaxyTcpClient client, int int8)
         {
             // Integers are written as a signed byte.
             byte[] intBytes = BitConverter.GetBytes((byte)int8);
-            minecraftTcpStream.Write(intBytes, 0, intBytes.Length);
+            client.TryWriteToStream(intBytes, 0, intBytes.Length);
         }
-        public static VarInt ReadVarInt(Stream minecraftTcpStream)
+        public static VarInt ReadVarInt(GalaxyTcpClient client)
         {
             int _offs = 0;
             byte[] buffer = new byte[] { };
-            minecraftTcpStream.ReadAsync(buffer, 0, 5).Wait();
+            client.TryReadFromStream(buffer, 0, 5);
             VarInt Vint = new VarInt();
             Vint.Read(buffer, ref _offs);
             return Vint;
         }
-        public static void WriteVarInt(Stream minecraftTcpStream, VarInt varInt)
+        public static void WriteVarInt(GalaxyTcpClient client, VarInt varInt)
         {
             int _offs = 0;
             byte[] buffer = new byte[5];
             varInt.Write(buffer, ref _offs);
-            minecraftTcpStream.Write(buffer, 0, buffer.Length);
+            client.TryWriteToStream(buffer, 0, buffer.Length);
         }
-        public static VarLong ReadVarLong(Stream minecraftTcpStream)
+        public static VarLong ReadVarLong(GalaxyTcpClient client)
         {
             int _offs = 0;
             byte[] buffer = new byte[] { };
-            minecraftTcpStream.ReadAsync(buffer, 0, 10).Wait();
+            client.TryReadFromStream(buffer, 0, 10);
             VarLong Vlong = new VarLong();
             Vlong.Read(buffer, ref _offs);
             return Vlong;
         }
-        public static void WriteVarLong(Stream minecraftTcpStream, VarLong varLong)
+        public static void WriteVarLong(GalaxyTcpClient client, VarLong varLong)
         {
             int _offs = 0;
             byte[] buffer = new byte[10];
             varLong.Write(buffer, ref _offs);
-            minecraftTcpStream.Write(buffer, 0, buffer.Length);
+            client.TryWriteToStream(buffer, 0, buffer.Length);
         }
-        public static ushort ReadUShort(Stream minecraftTcpStream)
+        public static ushort ReadUShort(GalaxyTcpClient client)
         {
             // Unsigned shorts are read as a signed short, in network byte order.
             byte[] shortBytes = new byte[2];
-            minecraftTcpStream.ReadAsync(shortBytes, 0, shortBytes.Length).Wait();
+            client.TryReadFromStream(shortBytes, 0, shortBytes.Length);
             return BitConverter.ToUInt16(shortBytes, 0);
         }
-        public static void WriteUShort(Stream minecraftTcpStream, ushort sUshort)
+        public static void WriteUShort(GalaxyTcpClient client, ushort sUshort)
         {
             // Unsigned shorts are written as a signed short, in network byte order.
             byte[] shortBytes = BitConverter.GetBytes(sUshort);
-            minecraftTcpStream.Write(shortBytes, 0, shortBytes.Length);
+            client.TryWriteToStream(shortBytes, 0, shortBytes.Length);
         }
-        public static long ReadLong(Stream minecraftTcpStream)
+        public static long ReadLong(GalaxyTcpClient client)
         {
             // Signed longs are read as a signed long, in network byte order.
             byte[] longBytes = new byte[8];
-            minecraftTcpStream.ReadAsync(longBytes, 0, longBytes.Length).Wait();
+            client.TryReadFromStream(longBytes, 0, longBytes.Length);
             return BitConverter.ToInt64(longBytes, 0);
         }
-        public static void WriteLong(Stream minecraftTcpStream, long long64)
+        public static void WriteLong(GalaxyTcpClient client, long long64)
         {
             // Signed longs are written as a signed long, in network byte order.
             byte[] longBytes = BitConverter.GetBytes(long64);
-            minecraftTcpStream.Write(longBytes, 0, longBytes.Length);
+            client.TryWriteToStream(longBytes, 0, longBytes.Length);
         }
-        
-        public static PacketMetadata ReadPacketMetadata(Stream minecraftTcpStream)
+        public static byte[] ReadBytes(GalaxyTcpClient client, int length)
         {
-            PacketMetadata packetMetadata = new PacketMetadata();
-            packetMetadata.Length = ReadVarInt(minecraftTcpStream);
-            packetMetadata.Id = ReadVarInt(minecraftTcpStream);
-            // Read the remainder of the packet and assign it as a MemoryStream to the Body property.
-            byte[] packetBody = new byte[packetMetadata.Length - 1];
-            minecraftTcpStream.ReadAsync(packetBody, 0, packetBody.Length).Wait();
-            packetMetadata.Body = new MemoryStream(packetBody);
-            return packetMetadata;
+            byte[] bytes = new byte[length];
+            client.TryReadFromStream(bytes, 0, bytes.Length);
+            return bytes;
+        }
+        public static void WriteBytes(GalaxyTcpClient client, byte[] bytes)
+        {
+            client.TryWriteToStream(bytes, 0, bytes.Length);
+        }
+            
+        public static PacketMetadata ReadPacketMetadata(GalaxyTcpClient client)
+        {
+            // Await stream ready
+            VarInt Length = TcpUtility.ReadVarInt(client);
+            // Now we have the length, we can read the rest of the packet
+            byte[] buffer = TcpUtility.ReadBytes(client, Length);
+            Stream _packetData =  new MemoryStream(buffer); 
+            // _packetData includes the type as a VarInt and the data as binary.
+            // We can now read the type.
+            VarInt Id = TcpUtility.ReadVarInt(_packetData);
+            // this.Type = (MinecraftPacketType)Id;
+            // Now only data is in the stream, we can delegate this off to inheriting classes.
+            return new PacketMetadata()
+            {
+                Body = _packetData,
+                Length = Length,
+                Id = Id
+            };
         }
     }
 }

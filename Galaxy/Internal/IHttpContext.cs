@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -25,7 +26,7 @@ namespace Galaxy.Internal
         }
         public void Close()
         {
-            if (!Open)
+            if (Open)
                 Response.Close();
             Open = false;
         }
@@ -130,9 +131,15 @@ namespace Galaxy.Internal
             if (Buffer != null)
             {
                 // Assumes Mime-Type is set
-                Response.ContentLength64 = Buffer.Length;
-                Response.OutputStream.Write(Buffer, 0, Buffer.Length);
-                return true;
+                try
+                {
+                    Response.OutputStream.Write(Buffer, 0, Buffer.Length);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
             return false;
         }

@@ -11,5 +11,9 @@ namespace Galaxy.Tcp.Util
                 throw new Exception("Assertion failed, " + message);
             }
         }
+        public static bool Exists(object? o)
+        {
+            return o != null;
+        }
     }
 }

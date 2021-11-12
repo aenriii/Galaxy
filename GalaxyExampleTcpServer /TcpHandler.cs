@@ -1,8 +1,10 @@
 using System;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Etsi.Minecraft;
+using Etsi.Minecraft.Server;
 using Etsi.Minecraft.Util;
 using Etsi.Minecraft.Util.Types.Packets;
 using Galaxy.Tcp;
@@ -12,13 +14,16 @@ namespace GalaxyExampleTcpServer
 {
     public class TcpHandler : GalaxyTcpClient
     {
+        internal GalaxyTcpClient InternalClient;
+
         public TcpHandler() : base()
         {
         }
         // Run through a standard Minecraft protocol handshake and status request
-        public void Handle(GalaxyTcpServer server, TcpClient client)
+        public new void Handle(GalaxyTcpServer server, TcpClient client)
         {
-            client.ReceiveBufferSize = 2097151;
+            client.ReceiveBufferSize = 4096;
+            Client = client;
             #if DEBUG
             Console.WriteLine("Handling client");
             #endif
@@ -28,7 +33,7 @@ namespace GalaxyExampleTcpServer
             #if DEBUG
             Console.WriteLine("Grabbing HandshakePacket...");
             #endif
-            HandshakePacket handshake = new HandshakePacket(Stream);
+            HandshakePacket handshake = new HandshakePacket(ToGalaxyTcpClient(this));
             // No other processing is neccessary, but let's log some debug info
             #if DEBUG
             Console.WriteLine("Handshake: {0}:{1}", handshake.ServerAddress, handshake.ServerPort);
@@ -42,7 +47,7 @@ namespace GalaxyExampleTcpServer
             Console.WriteLine("State is asserted.");
             #endif
             // Now we can read the next packet, which is a RequestPacket (due to process of events)
-            RequestPacket request = new RequestPacket(Stream);
+            RequestPacket request = new RequestPacket(ToGalaxyTcpClient(this));
             #if DEBUG
             Console.WriteLine("Processed RequestPacket");
             #endif
@@ -95,6 +100,16 @@ namespace GalaxyExampleTcpServer
             
             
             
+        }
+
+        public static GalaxyTcpClient ToGalaxyTcpClient(TcpHandler handler)
+        {
+            return new GalaxyTcpClient()
+            {
+                Client = handler.Client,
+                Stream = handler.Stream,
+                galaxyOptions = handler.galaxyOptions
+            };
         }
     }
 }

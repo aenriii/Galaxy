@@ -29,7 +29,7 @@ namespace Galaxy.Internal
         public void Delete(string route, Action<HttpContext> action);
         public void Put(string route, Action<HttpContext> action);
 
-        public void ServeStaticFile(string path, string route);
+        public void ServeStaticFile(string path, string route, string? CORS = null);
         public void ServeStaticFolder(string path, string route);
         // TODO: Templated Sites
         // public void ServeTemplatedSite(string path, string route, IGalaxyTemplateConfiguration templateConfiguration);

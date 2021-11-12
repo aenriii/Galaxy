@@ -1,15 +1,19 @@
 using System;
+using System.IO;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Galaxy.Tcp.Enums;
 using Galaxy.Tcp.Internal;
+using Galaxy.Tcp.Util;
 
 namespace Galaxy.Tcp
 {
     public class GalaxyTcpClient 
     {
         public IGalaxyTcpOptions galaxyOptions;
-        public NetworkStream Stream;
+        public Stream Stream;
         public TcpClient Client;
         public static bool PassThrough = true; // This defines if the context should be passed onto
                                                // "AcceptTcpClient" or if it can handle the request upon class creation
@@ -35,51 +39,84 @@ namespace Galaxy.Tcp
         
         #region Write buffer to stream
 
-        public bool TryWriteBuffer(byte[] bfr, bool flush = false)
+        public bool TryWriteToStream(byte[] bfr, int offset, int count, bool flush = false)
         {
-            if (bfr == null)
-                throw new ArgumentNullException(nameof(bfr));
-            
-            if (bfr.Length == 0)
-                throw new ArgumentException("Buffer is empty", nameof(bfr));
-            // make sure to pay attention to endian-ness
-            if (galaxyOptions.EndianOrientation == EndianSetting.LittleEndian)
-                Array.Reverse(bfr);
-            this.Stream.Write(bfr);
-            if (flush)
+            if (!Stream.CanWrite)
+                Wait.For(() => Stream.CanWrite);
+            bool isWritten = WaitHandle.WaitAll(
+                new[]
+                {
+                    this.Stream.BeginWrite(
+                        bfr,
+                        offset,
+                        count,
+                        (x) => { this.Stream.EndWrite(x); },
+                        null
+                    ).AsyncWaitHandle
+                }
+            );
+            if (flush && isWritten)
+            {
                 this.Stream.Flush();
-            return true;
-            
+            }
+            return isWritten;
+                
             
         }
         
         #endregion
         
         #region Read buffer from stream
-        public bool TryGetFromBuffer<T>(out T? val)
+
+        public bool TryReadFromStream(byte[] bfr, int offset, int count)
         {
-            var bfr = new byte[Marshal.SizeOf(typeof(T))];
-            this.Stream.Read(bfr, 0, Marshal.SizeOf(typeof(T)));
-            if (galaxyOptions.EndianOrientation == EndianSetting.LittleEndian)
-                Array.Reverse(bfr);
-            // use Marshal to convert the byte array to the type T, return null upon error or failure
-            try
+            if (Assert.Exists(Client))
             {
-                val = (T?) Marshal.PtrToStructure(Marshal.UnsafeAddrOfPinnedArrayElement(bfr, 0), typeof(T));
-                return true;
+                #if DEBUG
+                Console.WriteLine("Waiting for Client.Available to be lte count");
+                #endif
+                Wait.For(() => Client.Available <= count);
+                #if DEBUG
+                Console.WriteLine("Client.Available is lte count");
+                #endif
             }
-            catch (Exception)
+            else
             {
-                val = default(T);
-                return false;
+                #if DEBUG
+                Console.WriteLine("Client is null, not waiting for Client.Available as this is likely made by inference on a non-network stream.");
+                #endif
             }
+            Wait.For(() => Stream.CanRead);
+            return WaitHandle.WaitAll(
+                new[]
+                {
+                    this.Stream.BeginRead(
+                        bfr,
+                        offset,
+                        count,
+                        (x) => { this.Stream.EndRead(x); },
+                        null
+                    ).AsyncWaitHandle
+                }
+            );
+                
+            
         }
         #endregion
 
-        public virtual void Handle(GalaxyTcpServer server, TcpClient client)
+        public void Handle(GalaxyTcpServer server, TcpClient client)
         {
             
         }
+
+        public static implicit operator GalaxyTcpClient(Stream stream)
+        {
+            return new GalaxyTcpClient()
+            {
+                Stream = stream 
+            };
+        }
+        
 
 
     }

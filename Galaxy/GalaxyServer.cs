@@ -27,7 +27,7 @@ namespace Galaxy
         private Thread ListenerThread;
         private bool IsRunning;
         private bool IsStopped;
-        
+        private List<Action<HttpContext>> WaresAction;
         public GalaxyServer(int port)
         {
             EventPools = new ListDictionary<IGalaxyEvent, GalaxyRoute>();
@@ -35,6 +35,7 @@ namespace Galaxy
             IsRunning = false;
             IsStopped = false;
             Listener = new();
+            WaresAction = new List<Action<HttpContext>>();
             AddPort(port);
         }
 
@@ -44,6 +45,12 @@ namespace Galaxy
         {
             throw new NotImplementedException();
         }
+        public void UseMiddleware(Action<HttpContext> ware)
+        {
+            this.WaresAction.Add(ware);
+        }
+
+        
 
         public void RemoveMiddleware(IGalaxyWare ware)
         {
@@ -151,7 +158,7 @@ namespace Galaxy
             }
         }
 
-        public void ServeStaticFile(string path, string route)
+        public void ServeStaticFile(string path, string route, string? CORS = null)
         {
             if (!Assert.FileExists(path))
             {
@@ -172,6 +179,7 @@ namespace Galaxy
                     (context =>
                     {
                         Console.WriteLine("Serving static file: " + path);
+                        context.Response.AddHeader("Access-Control-Allow-Origin", CORS ?? "*");
                         context.TryWriteFile(path);
                     })
                 )
@@ -232,12 +240,19 @@ namespace Galaxy
         private void DispatchResponse(HttpContext httpContext)
         {
             Console.WriteLine("Received request: " + httpContext.Request.Url);
+            foreach (Action<HttpContext> action in this.WaresAction)
+            {
+                if (httpContext.Open)
+                    action(httpContext);
+                else return;
+            }
+            
             // get the event pool for the request
             if (EventPools.TryGetValue(new IGalaxyEvent(httpContext.Method.Method), out var list))
             {
                 
                 // find the route
-                var route = list.Find(x => x.Matches(httpContext.Request.Url.AbsolutePath));
+                var route = list.Find(x => x.Matches(httpContext.Request.Url.AbsolutePath.DecodeUriComponents()));
                 if (route != null)
                 {
                     // execute the route

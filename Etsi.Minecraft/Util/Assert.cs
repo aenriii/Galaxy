@@ -32,5 +32,11 @@ namespace Etsi.Minecraft.Util
         {
             return stream.DataAvailable;
         }
+
+        public static bool Exists(object? o)
+        {
+            return o != null;
+        }
+        
     }
 }

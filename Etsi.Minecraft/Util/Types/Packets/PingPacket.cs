@@ -1,12 +1,13 @@
 using System.IO;
 using Etsi.Minecraft.Server;
+using Galaxy.Tcp;
 
 namespace Etsi.Minecraft.Util.Types.Packets
 {
     public class PingPacket : MinecraftPacket
     {
         public long PingId;
-        public PingPacket(Stream stream) : base(stream)
+        public PingPacket(GalaxyTcpClient stream) : base(stream)
         {
             NextSteps();
         } 
